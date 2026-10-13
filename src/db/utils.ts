@@ -1,4 +1,4 @@
-import { SQL, eq, gte, lt, lte, ilike, sql, and } from "drizzle-orm";
+import { SQL, eq, gte, lt, lte, ilike, sql, and, or } from "drizzle-orm";
 import { logs } from "./schema.js";
 import { decodeCursor } from "../utils.js"
 import { logQuerySchema, logAggrigatorSchema } from "../type.js"
@@ -39,7 +39,16 @@ export function createLogConditions(parameter: z.infer<typeof logQuerySchema>, a
     if (parameter.cursor) {
         const cursorInfo = decodeCursor(parameter.cursor);
         const cursorTimestamp = new Date(cursorInfo.timestamp);
-        conditions.push(lte(logs.timestamp, cursorTimestamp))
+
+        conditions.push(
+            or(
+                lt(logs.timestamp, cursorTimestamp),
+                and(
+                    eq(logs.timestamp, cursorTimestamp),
+                    lt(logs.id, cursorInfo.id)
+                )
+            )!
+        );
     }
     for (const [key, value] of Object.entries(attribute)) {
         conditions.push(

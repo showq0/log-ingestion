@@ -54,9 +54,11 @@ export async function filterLogs(conditions: SQL[], limit?: number) {
     // the info should encoded
     const nextCursor = hasNextPage
         ? encodeCursor({
-            timestamp: logsResult[logsResult.length - 1].timestamp.toISOString()
+            timestamp: logsResult[logsResult.length - 1].timestamp.toISOString(),
+            id: logsResult[logsResult.length - 1].id
         })
         : null;
+
 
     return {
         logs: logsResult,
