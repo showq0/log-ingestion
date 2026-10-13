@@ -1,5 +1,5 @@
 import { ValidationResult, logSchema, logAggrigatorSchema, logQuerySchema, Cursor } from "./type.js"
-
+import errors from "./errors.js";
 import { z } from "zod";
 
 export function validateLogs(logs: unknown[]): ValidationResult {
@@ -34,33 +34,49 @@ export function encodeCursor(cursor: Cursor): string {
 }
 
 export function decodeCursor(cursor: string): Cursor {
-    return JSON.parse(
-        Buffer.from(cursor, "base64url").toString("utf-8")
-    );
+    try {
+        const decoded = Buffer.from(cursor, "base64url").toString("utf8");
+        const parsed = JSON.parse(decoded);
+        return parsed;
+    } catch {
+        throw new errors.BadRequestError("Invalid cursor");
+    }
 }
 
-export function validateQueryParameter(entryQueryParameter: {}): { success: boolean; error?: string, data?: z.infer<typeof logQuerySchema> } {
+export function validateQueryParameter(
+    entryQueryParameter: Record<string, unknown>,
+): {
+    success: boolean;
+    error?: unknown;
+    data?: z.infer<typeof logQuerySchema>;
+} {
     // addition handle untile since with others 
     const queryParameter = logQuerySchema.safeParse(entryQueryParameter);
-    if (queryParameter.success) {
-        if (queryParameter.data.since && queryParameter.data.until) {
-            if (queryParameter.data.since > queryParameter.data.until) {
-                return { success: true, error: "until must be later than since" };
-            }
-            else
-                return { success: true, data: queryParameter.data };
-        }
-        return { success: true, data: queryParameter.data };
-    }
 
-    const errors = JSON.parse(queryParameter.error.message);
-
-    return {
-        success: false,
-        error: errors.map((error: { path: string[]; message: string }) => ({
+    if (!queryParameter.success) {
+        // remove json parse
+        const errors = queryParameter.error.issues.map((error) => ({
             path: error.path.join("."),
             message: error.message,
-        }))
+        }));
+
+        return {
+            success: false,
+            error: errors,
+        };
+    }
+
+    const { since, until } = queryParameter.data;
+
+    if (since && until && since > until) {
+        return {
+            success: false,
+            error: "until must be later than since",
+        };
+    }
+    return {
+        success: true,
+        data: queryParameter.data
     };
 }
 

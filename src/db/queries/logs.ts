@@ -64,7 +64,7 @@ export async function filterLogs(conditions: SQL[], limit?: number) {
     };
 }
 
-export async function aggregateLog(conditions: SQL[], isServiceExist: boolean, bucket: Bucket) {
+export async function aggregateLog(conditions: SQL[], groupBy: "service" | "level" | undefined, bucket: Bucket,) {
     const bucketExpression = sql<Date>`
         date_bin(
             ${intervals[bucket]},
@@ -72,12 +72,12 @@ export async function aggregateLog(conditions: SQL[], isServiceExist: boolean, b
             timestamptz '1970-01-01'
         )
     `;
-    if (isServiceExist) {
+    if (groupBy === "service") {
         return db
             .select({
-                bucket: bucketExpression,
-                count: sql<number>`count(*)`,
-                service: logs.service
+                start: bucketExpression,
+                group: logs.service,
+                count: sql<number>`count(*)::int`
             }).from(logs).where(
                 conditions.length > 0
                     ? and(...conditions)
@@ -87,10 +87,27 @@ export async function aggregateLog(conditions: SQL[], isServiceExist: boolean, b
                     );
     }
 
+    if (groupBy === "level") {
+        return db
+            .select({
+                start: bucketExpression,
+                group: logs.level,
+                count: sql<number>`count(*)::int`,
+            }).from(logs).where(
+                conditions.length > 0
+                    ? and(...conditions)
+                    : undefined,
+            ).groupBy(
+                bucketExpression,
+                logs.level,
+            );
+    }
+
     return db
         .select({
-            bucket: bucketExpression,
-            count: sql<number>`count(*)`,
+            start: bucketExpression,
+            group: sql<null>`NULL`,
+            count: sql<number>`count(*)::int`,
         }).from(logs).where(
             conditions.length > 0
                 ? and(...conditions)

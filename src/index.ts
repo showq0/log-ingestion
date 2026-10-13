@@ -7,6 +7,7 @@ import { Request, Response } from "express"
 import { createLogsHandler } from "./api/ingestLogs.js"
 import { queryLogsHandler } from "./api/queryLogs.js"
 import { aggregateLogsHandler } from "./api/aggregateLogs.js"
+import errorsHandling from "./middlewares/errors-handling.js"
 
 
 
@@ -29,6 +30,7 @@ function healthHandler(req: Request, res: Response) {
         status: "ok",
     });
 }
+app.use(errorsHandling)
 
 async function startServer() {
     const migrationClient = postgres(config.db.url, { max: 1, });
