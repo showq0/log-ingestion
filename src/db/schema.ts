@@ -6,6 +6,7 @@ import {
     timestamp,
     primaryKey,
     index,
+    integer,
 } from "drizzle-orm/pg-core";
 
 export const logs = pgTable("logs", {
@@ -29,6 +30,15 @@ export const logs = pgTable("logs", {
         table.timestamp.desc(),
         table.id.desc()
     ),
+]);
+
+export const minuteAggregates = pgTable("log_minute_aggregates", {
+    minute: timestamp("minute").notNull(),
+    service: text("service").notNull(),
+    level: text("level").notNull(),
+    count: integer("count").notNull(),
+}, (table) => [
+    primaryKey({ columns: [table.minute, table.service, table.level] }),
 ]);
 
 export type NewLog = typeof logs.$inferInsert;

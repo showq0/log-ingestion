@@ -25,7 +25,18 @@ export async function aggregateLogsHandler(req: Request, res: Response,) {
     }
     const condtion = createAggLogConditions(aggValidate.data, attribute)
 
-    const result = await aggregateLog(condtion, aggValidate.data.group_by, aggValidate.data.bucket);
+    const canUseRollup = !aggValidate.data.q && Object.keys(attribute).length === 0;
+    const result = await aggregateLog(
+        condtion,
+        aggValidate.data.group_by,
+        aggValidate.data.bucket,
+        canUseRollup ? {
+            since: aggValidate.data.since,
+            until: aggValidate.data.until,
+            service: aggValidate.data.service,
+            level: aggValidate.data.level,
+        } : undefined,
+    );
     // const result = await aggregateLog(condtion, aggValidate.data.group_by, aggValidate.data.bucket);
     return res.status(200).json({
         "buckets": result,
