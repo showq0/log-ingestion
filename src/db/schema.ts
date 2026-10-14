@@ -9,6 +9,8 @@ import {
     integer,
 } from "drizzle-orm/pg-core";
 
+// PostgreSQL range partitioning is declared in the SQL migration because
+// Drizzle's pgTable schema currently describes columns and indexes only.
 export const logs = pgTable("logs", {
     id: uuid("id").notNull().defaultRandom(),
 

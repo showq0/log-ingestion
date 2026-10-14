@@ -1,5 +1,5 @@
 import { db } from "../index.js";
-import { NewLog, logs, minuteAggregates } from "../schema.js";
+import { logs, minuteAggregates } from "../schema.js";
 import { and, eq, gte, lt, SQL, desc, sql } from "drizzle-orm";
 import { encodeCursor } from "../../utils.js";
 const PAGE_DEFAULT = 100;
@@ -19,42 +19,6 @@ const widths: Record<Bucket, number> = {
 };
 export type Bucket = keyof typeof intervals;
 
-
-export async function createLogs(logEntries: NewLog[]) {
-    // atomic unit Insert logs and update aggregates.
-    // tx transaction object.
-    return db.transaction(async (tx) => {
-        // Insert the raw logs.
-        const inserted = await tx
-            .insert(logs)
-            .values(logEntries)
-            .onConflictDoNothing()
-            .returning();
-
-        if (inserted.length === 0) return inserted;
-
-        // Calculate the counts for those newly inserted logs.
-        const counts = new Map<string, { minute: Date; service: string; level: string; count: number }>();
-        for (const row of inserted) {
-            const minuteMs = Math.floor(row.timestamp.getTime() / 60_000) * 60_000;
-            const minute = new Date(minuteMs);
-            const key = `${minuteMs}\u0000${row.service}\u0000${row.level}`;
-            const entry = counts.get(key);
-            if (entry) entry.count++;
-            else counts.set(key, { minute, service: row.service, level: row.level, count: 1 });
-        }
-        // Update the aggregate table.
-        await tx
-            .insert(minuteAggregates)
-            .values([...counts.values()])
-            .onConflictDoUpdate({
-                target: [minuteAggregates.minute, minuteAggregates.service, minuteAggregates.level],
-                set: { count: sql`${minuteAggregates.count} + excluded.count` },//  updated-count = existing_count + newly_inserted_count;
-            });
-
-        return inserted;
-    });
-}
 
 export async function filterLogs(conditions: SQL[], limit?: number) {
     //where limit (undefined)returns 100 

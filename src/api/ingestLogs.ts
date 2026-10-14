@@ -1,7 +1,7 @@
 import { validateLogs } from "../utils.js"
 import { Request, Response } from "express"
 
-import { createLogs } from "../db/queries/logs.js"
+import { enqueueLogs } from "../db/ingestion/buffer.js"
 
 export async function createLogsHandler(req: Request, res: Response) {
     const body = req.body;
@@ -15,7 +15,7 @@ export async function createLogsHandler(req: Request, res: Response) {
         });
     }
     // insert valid logs
-    await createLogs(result.valid);
+    await enqueueLogs(result.valid);
 
     return res.status(200).json({
         accepted: result.valid.length,
