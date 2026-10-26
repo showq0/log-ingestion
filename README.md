@@ -21,27 +21,29 @@ The service uses **in-memory buffering and batched `COPY` writes** to improve in
 flowchart LR
     A["Log ingest"] --> B["Express.js API<br/>TypeScript"]
     B --> C["Validate<br/>Logs"]
-    C --> D["In-Memory<br/>Buffer"]
-    D --> E["Batch<br/>Flush"]
-    E --> F[" COPY <br/> Writer"]
-    F --> G[("Logs")]
-
-    F --> H["Aggregation <br/>Builder"]
-    H --> I[("Minute<br/>Aggregates")]
+    C --> D["In-Memory<br/>Batch"]
+    D --> E["Bulk<br/>Streaming"]
+    E --> F[("Logs")]
+    E --> H["Aggregation<br/>Builder"]
+    H --> I[("Minute<br/>Aggregates<br/>")]
 
     J["aggrigate"] --> K["calculate aggrigation"]
     K -->|Standard<br/>aggrigation| I
-    K -->|edge<br/>cases| G
+    K -->|edge<br/>cases| F
 
+    subgraph DB["PostgreSQL Database"]
+        F
+        I
+    end
     classDef app fill:#DCEAFE,stroke:#2563EB,color:#172554
     classDef processing fill:#FEF3C7,stroke:#D97706,color:#78350F
     classDef storage fill:#D1FAE5,stroke:#059669,color:#064E3B
-    classDef query fill:#F3E8FF,stroke:#9333EA,color:#581C87
+    classDef subgraphdb fill:#E8EEF7,stroke:#64748B,color:#1E293B
 
     class A,B,J app
-    class C,D,E,F,H,L processing
-    class G,I storage
-    class K,M query
+    class C,D,E,F,H,L,K processing
+    class F,I storage
+    class DB subgraphdb
 ```
 ------
 # Schema Design

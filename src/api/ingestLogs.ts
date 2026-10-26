@@ -14,7 +14,7 @@ export async function createLogsHandler(req: Request, res: Response) {
             rejected: result.invalid,
         });
     }
-    // insert valid logs
+    // return promise we don't wait the promise 
     await enqueueLogs(result.valid);
 
     return res.status(200).json({
