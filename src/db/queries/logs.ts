@@ -1,4 +1,4 @@
-import { db } from "../index.js";
+import { queryDb, aggregationDb } from "../index.js";
 import { logs, minuteAggregates } from "../schema.js";
 import { and, eq, gte, lt, SQL, desc, sql } from "drizzle-orm";
 import { encodeCursor } from "../../utils.js";
@@ -24,7 +24,7 @@ export async function filterLogs(conditions: SQL[], limit?: number) {
     //where limit (undefined)returns 100 
     const query_limit = limit ?? PAGE_DEFAULT
 
-    const result = await db
+    const result = await queryDb
         .select()
         .from(logs)
         .where(
@@ -65,7 +65,7 @@ async function aggregateRaw(conditions: SQL[], groupBy: "service" | "level" | un
         )
     `;
     if (groupBy === "service") {
-        return db
+        return aggregationDb
             .select({
                 start: bucketExpression,
                 group: logs.service,
@@ -80,7 +80,7 @@ async function aggregateRaw(conditions: SQL[], groupBy: "service" | "level" | un
     }
 
     if (groupBy === "level") {
-        return db
+        return aggregationDb
             .select({
                 start: bucketExpression,
                 group: logs.level,
@@ -95,7 +95,7 @@ async function aggregateRaw(conditions: SQL[], groupBy: "service" | "level" | un
             );
     }
 
-    return db
+    return aggregationDb
         .select({
             start: bucketExpression,
             group: sql<null>`NULL`,
@@ -148,7 +148,7 @@ export async function aggregateLog(
     if (fastPath.level) rollupFilters.push(eq(minuteAggregates.level, fastPath.level));
 
     // get data from secondry table 
-    const rollups = await db.select({
+    const rollups = await aggregationDb.select({
         minute: minuteAggregates.minute,
         service: minuteAggregates.service,
         level: minuteAggregates.level,

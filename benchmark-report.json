@@ -1,6 +1,6 @@
 {
   "tool": "@foothill/logs-benchmark",
-  "generatedAt": "2026-10-14T13:47:30.446Z",
+  "generatedAt": "2026-10-28T11:42:08.273Z",
   "mode": "compose",
   "endpoint": "http://127.0.0.1:8080",
   "durationScale": 1,
@@ -17,12 +17,12 @@
     "memorySufficient": true
   },
   "machineSpeed": {
-    "workUnitsPerSecond": 36.73769287288758,
-    "factor": 0.7064940937093765
+    "workUnitsPerSecond": 37.11034141514102,
+    "factor": 0.713660411829635
   },
   "correctness": {
-    "passed": 1,
-    "total": 1,
+    "passed": 15,
+    "total": 15,
     "cap": null,
     "checks": [
       {
@@ -30,6 +30,90 @@
         "passed": true,
         "expected": "GET /health returns HTTP 200",
         "actual": "HTTP status 200"
+      },
+      {
+        "name": "ingestion.single",
+        "passed": true,
+        "expected": "a valid log is accepted",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "ingestion.batch",
+        "passed": true,
+        "expected": "a valid batch is accepted",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "ingestion.partial-invalid",
+        "passed": true,
+        "expected": "invalid entries are reported without accepting them",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "ingestion.empty",
+        "passed": true,
+        "expected": "an empty batch is rejected with a client error",
+        "actual": "HTTP status 400"
+      },
+      {
+        "name": "ingestion.malformed-json",
+        "passed": true,
+        "expected": "malformed JSON is rejected with a client error",
+        "actual": "HTTP status 400"
+      },
+      {
+        "name": "query.unfiltered",
+        "passed": true,
+        "expected": "stored logs can be listed",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "query.filters",
+        "passed": true,
+        "expected": "service and level filters are applied",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "query.invalid-parameters",
+        "passed": true,
+        "expected": "invalid query parameters return a client error",
+        "actual": "HTTP status 400"
+      },
+      {
+        "name": "pagination.stable-order",
+        "passed": true,
+        "expected": "results have deterministic ordering",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "pagination.cursor",
+        "passed": true,
+        "expected": "cursor pages have no gaps or duplicates",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "pagination.invalid-cursor",
+        "passed": true,
+        "expected": "invalid cursors return a client error",
+        "actual": "HTTP status 400"
+      },
+      {
+        "name": "aggregate.buckets",
+        "passed": true,
+        "expected": "time buckets contain correct counts",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "aggregate.grouping",
+        "passed": true,
+        "expected": "service and level grouping is supported",
+        "actual": "HTTP status 200"
+      },
+      {
+        "name": "aggregate.invalid-options",
+        "passed": true,
+        "expected": "invalid aggregation options return a client error",
+        "actual": "HTTP status 400"
       }
     ]
   },
@@ -37,68 +121,68 @@
     {
       "scenario": "load",
       "status": "completed",
-      "logsPerSecond": 14858.333333333334,
+      "logsPerSecond": 14997.5,
       "errorRate": 0,
-      "latencyP95Ms": 119.6430481,
-      "aggregateP95Ms": 6,
+      "latencyP95Ms": 125.23330839999997,
+      "aggregateP95Ms": 8.04999999999998,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 1783000,
-      "visibleRecords": 1783000,
+      "acceptedRecords": 1799700,
+      "visibleRecords": 1799700,
       "offeredLogsPerSecond": 15000,
-      "droppedIterations": 165,
-      "generatorLimited": true,
+      "droppedIterations": 0,
+      "generatorLimited": false,
       "serviceLimited": false
     },
     {
       "scenario": "stress",
       "status": "completed",
-      "logsPerSecond": 20928,
+      "logsPerSecond": 20996.666666666668,
       "errorRate": 0,
-      "latencyP95Ms": 230.02926699999966,
-      "aggregateP95Ms": 20,
+      "latencyP95Ms": 173.5790375,
+      "aggregateP95Ms": 22.14999999999992,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 3139200,
-      "visibleRecords": 3139200,
+      "acceptedRecords": 3149500,
+      "visibleRecords": 3149500,
       "offeredLogsPerSecond": 21000,
-      "droppedIterations": 90,
+      "droppedIterations": 2,
       "generatorLimited": true,
       "serviceLimited": false
     },
     {
       "scenario": "spike",
       "status": "completed",
-      "logsPerSecond": 15372,
+      "logsPerSecond": 15349,
       "errorRate": 0,
-      "latencyP95Ms": 151.71990434999998,
-      "aggregateP95Ms": 20.049999999999983,
+      "latencyP95Ms": 164.8511836,
+      "aggregateP95Ms": 26,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 1537200,
-      "visibleRecords": 1537200,
+      "acceptedRecords": 1534900,
+      "visibleRecords": 1534900,
       "offeredLogsPerSecond": 15375,
-      "droppedIterations": 0,
-      "generatorLimited": false,
+      "droppedIterations": 20,
+      "generatorLimited": true,
       "serviceLimited": false
     },
     {
       "scenario": "breakpoint",
       "status": "completed",
-      "logsPerSecond": 21139.166666666668,
+      "logsPerSecond": 22463.333333333332,
       "errorRate": 0,
-      "latencyP95Ms": 2590.0701261,
-      "aggregateP95Ms": 1186.5999999999995,
+      "latencyP95Ms": 1335.4102299999993,
+      "aggregateP95Ms": 526,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 2536700,
-      "visibleRecords": 2536700,
+      "acceptedRecords": 2695600,
+      "visibleRecords": 2695600,
       "offeredLogsPerSecond": 24375,
-      "droppedIterations": 3482,
+      "droppedIterations": 2270,
       "generatorLimited": true,
       "serviceLimited": false
     }
@@ -108,34 +192,34 @@
     "eligibility": {
       "eligible": true
     },
-    "score": 96.98485502111112,
+    "score": 97.07139657333333,
     "maximumScore": 100,
     "correctness": {
       "points": 15,
       "maximum": 15,
       "percentage": 100,
       "components": {
-        "passed": 1,
-        "total": 1
+        "passed": 15,
+        "total": 15
       }
     },
     "performance": {
-      "points": 47.09285502111112,
+      "points": 47.21629657333333,
       "maximum": 50,
-      "percentage": 94.18571004222224,
+      "percentage": 94.43259314666666,
       "components": {
-        "throughput": 0.39622222222222225,
+        "throughput": 0.39993333333333336,
         "errors": 0.3,
-        "latency": 0.19563487820000003,
+        "latency": 0.19439259813333334,
         "sustainedBonus": 0.05
       }
     },
     "queries": {
-      "points": 14.892,
+      "points": 14.8551,
       "maximum": 15,
-      "percentage": 99.28,
+      "percentage": 99.034,
       "components": {
-        "aggregateLatency": 0.988,
+        "aggregateLatency": 0.9839,
         "eventualConsistencyPassedScenarios": 4,
         "eventualConsistencyTotalScenarios": 4,
         "eventualConsistencyPoints": 6,
@@ -153,7 +237,7 @@
     },
     "calculation": {
       "correctnessRatio": 1,
-      "uncappedScore": 96.98485502111112,
+      "uncappedScore": 97.07139657333333,
       "appliedCap": null
     }
   }

@@ -1,7 +1,9 @@
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { conn } from "../index.js";
 import type { NewLog } from "../schema.js";
+import { minuteAggregates } from "../schema.js";
+import { sql } from "drizzle-orm";
+import { builderDb, ingestClient } from "../index.js"
 
 // CSV quoting keeps arbitrary messages and JSON attributes safe for COPY.
 function csv(value: string | null): string {
@@ -15,7 +17,7 @@ function csv(value: string | null): string {
 export async function writeLogsBatch(entries: NewLog[]): Promise<void> {
     if (entries.length === 0) return;
     //  tx is the database transaction atomic 
-    await conn.begin(async (tx) => {
+    await ingestClient.begin(async (tx) => {
         // copy: destination stream that receives your log data and sends it to PostgreSQL's COPY operation.
         const writeStream = await tx`COPY logs (timestamp, level, service, message, attributes) FROM STDIN WITH (FORMAT CSV, NULL '')`.writable();
         // entries: an array of log objects. rows: one CSV-formatted string representing a database row.
@@ -33,29 +35,39 @@ export async function writeLogsBatch(entries: NewLog[]): Promise<void> {
         // Pipeline: connects streams to transfers data.
         const ReadStream = Readable.from(rows)
         await pipeline(ReadStream, writeStream);
-
+        void aggregationBuilder(entries);
         // calculate aggrigation each time i ingest a bulk 
-        const counts = new Map<string, { minute: Date; service: string; level: string; count: number }>();
-        for (const entry of entries) {
-            const minuteMs = Math.floor(entry.timestamp!.getTime() / 60_000) * 60_000;
-            const key = `${minuteMs}\u0000${entry.service}\u0000${entry.level}`;
-            const aggregate = counts.get(key);
-            if (aggregate) aggregate.count++;
-            else counts.set(key, { minute: new Date(minuteMs), service: entry.service, level: entry.level, count: 1 });
-        }
-
-        // Use ISO strings with explicit casts for postgres.js unsafe() parameters.
-        const values = [...counts.values()].flatMap(({ minute, service, level, count }) => [
-            minute.toISOString(), service, level, count,
-        ]);
-        const placeholders = [...counts.keys()].map((_, index) => {
-            const offset = index * 4;
-            return `($${offset + 1}::timestamp, $${offset + 2}, $${offset + 3}, $${offset + 4})`;
-        }).join(", ");
-        // for consistancy in secondery table
-        await tx.unsafe(`INSERT INTO log_minute_aggregates (minute, service, level, count)
-            VALUES ${placeholders}
-            ON CONFLICT (minute, service, level) DO UPDATE
-            SET count = log_minute_aggregates.count + EXCLUDED.count`, values);
     });
+}
+export async function aggregationBuilder(entries: NewLog[]) {
+    const counts = new Map<string, { minute: Date; service: string; level: string; count: number }>();
+    for (const entry of entries) {
+        const minuteMs = Math.floor(entry.timestamp!.getTime() / 60_000) * 60_000;
+        const key = `${minuteMs}\u0000${entry.service}\u0000${entry.level}`;
+        const aggregate = counts.get(key);
+        if (aggregate) aggregate.count++;
+        else counts.set(key, { minute: new Date(minuteMs), service: entry.service, level: entry.level, count: 1 });
+    }
+    const aggregateValues = [...counts.values()].map(
+        ({ minute, service, level, count }) => ({
+            minute,
+            service,
+            level,
+            count,
+        })
+    );
+    // - target identifies the columns that PostgreSQL uses to detect a conflict.
+    // - set defines how to update the existing row when that conflict occurs
+    await builderDb.insert(minuteAggregates)
+        .values(aggregateValues)
+        .onConflictDoUpdate({
+            target: [
+                minuteAggregates.minute,
+                minuteAggregates.service,
+                minuteAggregates.level,
+            ],
+            set: {
+                count: sql`${minuteAggregates.count} + excluded.count`,
+            },
+        });
 }

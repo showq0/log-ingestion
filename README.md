@@ -72,15 +72,16 @@ flowchart LR
 | Added index strategy                      | 15.0/15     | 26.9/50     | 6.0/15  | 20/20       | 67.9%  |
 | Dual-path aggregation engine              | 15.0/15     | 28.3/50     | 6.0/15  | 20/20       | 69.3% |
 | In-memory buffering + batched COPY writes | 15.0/15     | 47.1/50     | 14.9/15 | 20/20       | 97.0% |
+| DB Pools Based on Workload | 15.0/15     | 47.2/50     | 14.9/15 | 20/20       | 97.1% |
 
 ## Scenario Results 
 
 | Scenario   | Throughput    | Ingestion p95 | Aggregation p95 | Error rate      |
 | ---------- | ------------- | ------------- | --------------- | ----------- |
-| Load       | 14,858 logs/s | 119.6 ms      | 6 ms            | 0%   |
-| Stress     | 20,928 logs/s | 230.0 ms      | 20 ms           | 0%   |
-| Spike      | 15,372 logs/s | 151.7 ms      | 20.1 ms         | 0%   |
-| Breakpoint | 21,139 logs/s | 2,590 ms      | 1,186.6 ms      | 0% |
+| Load       | 14,998 logs/s | 125.23 ms      | 8.05 ms            | 0%   |
+| Stress     | 20,996 logs/s | 173.58 ms      | 22.15 ms           | 0%   |
+| Spike      | 15,349 logs/s | 164.85 ms      | 26 ms         | 0%   |
+| Breakpoint | 22,463 logs/s | 1,335 ms      | 526 ms      | 0% |
 
 ---
 # Setup Instructions
