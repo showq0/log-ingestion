@@ -2,6 +2,7 @@ import { validateLogs } from "../utils.js"
 import { Request, Response } from "express"
 
 import { enqueueLogs } from "../db/ingestion/buffer.js"
+import { broadcastLogs } from "../sse.js"
 
 export async function createLogsHandler(req: Request, res: Response) {
     const body = req.body;
@@ -14,6 +15,10 @@ export async function createLogsHandler(req: Request, res: Response) {
             rejected: result.invalid,
         });
     }
+
+    // Stream logs to clients
+    broadcastLogs(result.valid);
+
     // return promise we don't wait the promise 
     await enqueueLogs(result.valid);
 

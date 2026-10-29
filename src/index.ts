@@ -7,21 +7,29 @@ import { Request, Response } from "express"
 import { createLogsHandler } from "./api/ingestLogs.js"
 import { queryLogsHandler } from "./api/queryLogs.js"
 import { aggregateLogsHandler } from "./api/aggregateLogs.js"
+import { sseLogsHandler as streamLogs } from "./sse.js"
 import errorsHandling from "./middlewares/errors-handling.js"
-
+import cors from "cors";
 
 
 const app = express();
 
 // alformed JSON syntax
 app.use(express.json());
+
+// Allow requests from the Vite frontend
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+    }),
+);
 const PORT = config.api.port;
 
 app.use(express.static("."));
 
 app.get("/health", healthHandler);
 app.post("/logs", createLogsHandler);
-
+app.get("/logs/stream", streamLogs);
 app.get("/logs", queryLogsHandler);
 app.get("/logs/aggregate", aggregateLogsHandler);
 
