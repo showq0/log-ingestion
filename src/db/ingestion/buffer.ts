@@ -7,41 +7,44 @@ type PendingWrite = {
     reject: (error: unknown) => void;
 };
 
-const COPY_BATCH_SIZE = 1000;
+const COPY_BATCH_SIZE = 2000;
 const COPY_BATCH_DELAY_MS = 5;
+// Start conservatively; tune against database capacity and ingestion latency.
+const MAX_ACTIVE_FLUSHES = 6;
 let pendingLogs: PendingWrite[] = [];
 let pendingLogCount = 0;
 let flushTimer: ReturnType<typeof setTimeout> | undefined;
-let flushInProgress: Promise<void> | undefined;
+let activeFlushes = 0;
 
 function scheduleFlush() {
     if (!flushTimer) flushTimer = setTimeout(() => void flushBatch(), COPY_BATCH_DELAY_MS);
 }
 
 async function flushBatch(): Promise<void> {
-    if (flushInProgress) return flushInProgress;
     if (flushTimer) clearTimeout(flushTimer);
     flushTimer = undefined;
-    if (pendingLogs.length === 0) return;
+    while (pendingLogs.length > 0 && activeFlushes < MAX_ACTIVE_FLUSHES) {
+        const batch = pendingLogs;
+        pendingLogs = [];
+        pendingLogCount = 0;
+        activeFlushes++;
+        // flat batch, sends them to PostgreSQL for bulk insertion.
+        // then: update the resolve for each log in batch:  resolve each request's promise with its log count.
+        // catch: update reject for each batch if error: reject each request's promise with the error.
+        // disable fushInPorgress index 
+        // rschadule Flush if there is new pending logs  
 
-    const batch = pendingLogs;
-    pendingLogs = [];
-    pendingLogCount = 0;
-    // flat batch, sends them to PostgreSQL for bulk insertion.
-    // then: update the resolve for each log in batch:  resolve each request's promise with its log count.
-    // catch: update reject for each batch if error: reject each request's promise with the error.
-    // disable fushInPorgress index 
-    // rschadule Flush if there is new pending logs  
-
-    flushInProgress = writeLogsBatch(batch.flatMap((write) => write.logs))
-        .then(() => batch.forEach((writeLogs) => writeLogs.resolve(writeLogs.logs.length)))
-        .catch((error: unknown) => batch.forEach((write) => write.reject(error)))
-        .finally(() => {
-            flushInProgress = undefined;
-            if (pendingLogs.length) scheduleFlush();
-        }
-        );
-    return flushInProgress;
+        // Each flush owns its batch and a separate pool connection, so batches
+        // can run concurrently without sharing mutable queue state.
+        void writeLogsBatch(batch.flatMap((write) => write.logs))
+            .then(() => batch.forEach((write) => write.resolve(write.logs.length)))
+            .catch((error: unknown) => batch.forEach((write) => write.reject(error)))
+            .finally(() => {
+                activeFlushes--;
+                if (pendingLogs.length > 0) void flushBatch();
+            });
+    }
+    if (pendingLogs.length > 0) scheduleFlush();
 }
 
 /** Queue a request's logs and resolve once their batched transaction commits. */

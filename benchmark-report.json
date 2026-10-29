@@ -1,6 +1,6 @@
 {
   "tool": "@foothill/logs-benchmark",
-  "generatedAt": "2026-10-28T11:42:08.273Z",
+  "generatedAt": "2026-10-29T00:01:10.108Z",
   "mode": "compose",
   "endpoint": "http://127.0.0.1:8080",
   "durationScale": 1,
@@ -17,8 +17,8 @@
     "memorySufficient": true
   },
   "machineSpeed": {
-    "workUnitsPerSecond": 37.11034141514102,
-    "factor": 0.713660411829635
+    "workUnitsPerSecond": 36.873156342182895,
+    "factor": 0.7090991604265942
   },
   "correctness": {
     "passed": 15,
@@ -121,15 +121,15 @@
     {
       "scenario": "load",
       "status": "completed",
-      "logsPerSecond": 14997.5,
+      "logsPerSecond": 14999.166666666666,
       "errorRate": 0,
-      "latencyP95Ms": 125.23330839999997,
-      "aggregateP95Ms": 8.04999999999998,
+      "latencyP95Ms": 79.9687543999998,
+      "aggregateP95Ms": 2,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 1799700,
-      "visibleRecords": 1799700,
+      "acceptedRecords": 1799900,
+      "visibleRecords": 1799900,
       "offeredLogsPerSecond": 15000,
       "droppedIterations": 0,
       "generatorLimited": false,
@@ -138,51 +138,51 @@
     {
       "scenario": "stress",
       "status": "completed",
-      "logsPerSecond": 20996.666666666668,
+      "logsPerSecond": 20972.666666666668,
       "errorRate": 0,
-      "latencyP95Ms": 173.5790375,
-      "aggregateP95Ms": 22.14999999999992,
+      "latencyP95Ms": 213.5180422999995,
+      "aggregateP95Ms": 57.249999999999865,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 3149500,
-      "visibleRecords": 3149500,
+      "acceptedRecords": 3145900,
+      "visibleRecords": 3145900,
       "offeredLogsPerSecond": 21000,
-      "droppedIterations": 2,
+      "droppedIterations": 40,
       "generatorLimited": true,
       "serviceLimited": false
     },
     {
       "scenario": "spike",
       "status": "completed",
-      "logsPerSecond": 15349,
+      "logsPerSecond": 15374,
       "errorRate": 0,
-      "latencyP95Ms": 164.8511836,
+      "latencyP95Ms": 91.33238114999995,
       "aggregateP95Ms": 26,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 1534900,
-      "visibleRecords": 1534900,
+      "acceptedRecords": 1537400,
+      "visibleRecords": 1537400,
       "offeredLogsPerSecond": 15375,
-      "droppedIterations": 20,
-      "generatorLimited": true,
+      "droppedIterations": 0,
+      "generatorLimited": false,
       "serviceLimited": false
     },
     {
       "scenario": "breakpoint",
       "status": "completed",
-      "logsPerSecond": 22463.333333333332,
+      "logsPerSecond": 21899.166666666668,
       "errorRate": 0,
-      "latencyP95Ms": 1335.4102299999993,
-      "aggregateP95Ms": 526,
+      "latencyP95Ms": 2654.1657804999995,
+      "aggregateP95Ms": 1312.9999999999993,
       "readAfterWriteSuccessRate": 0,
       "thresholdPassed": true,
       "consistencyPassed": true,
-      "acceptedRecords": 2695600,
-      "visibleRecords": 2695600,
+      "acceptedRecords": 2627900,
+      "visibleRecords": 2627900,
       "offeredLogsPerSecond": 24375,
-      "droppedIterations": 2270,
+      "droppedIterations": 2969,
       "generatorLimited": true,
       "serviceLimited": false
     }
@@ -192,7 +192,7 @@
     "eligibility": {
       "eligible": true
     },
-    "score": 97.07139657333333,
+    "score": 97.4628888888889,
     "maximumScore": 100,
     "correctness": {
       "points": 15,
@@ -204,22 +204,22 @@
       }
     },
     "performance": {
-      "points": 47.21629657333333,
+      "points": 47.49888888888889,
       "maximum": 50,
-      "percentage": 94.43259314666666,
+      "percentage": 94.99777777777778,
       "components": {
-        "throughput": 0.39993333333333336,
+        "throughput": 0.39997777777777777,
         "errors": 0.3,
-        "latency": 0.19439259813333334,
+        "latency": 0.2,
         "sustainedBonus": 0.05
       }
     },
     "queries": {
-      "points": 14.8551,
+      "points": 14.964,
       "maximum": 15,
-      "percentage": 99.034,
+      "percentage": 99.76,
       "components": {
-        "aggregateLatency": 0.9839,
+        "aggregateLatency": 0.996,
         "eventualConsistencyPassedScenarios": 4,
         "eventualConsistencyTotalScenarios": 4,
         "eventualConsistencyPoints": 6,
@@ -237,7 +237,7 @@
     },
     "calculation": {
       "correctnessRatio": 1,
-      "uncappedScore": 97.07139657333333,
+      "uncappedScore": 97.4628888888889,
       "appliedCap": null
     }
   }

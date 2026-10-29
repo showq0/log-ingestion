@@ -29,14 +29,12 @@ export async function writeLogsBatch(entries: NewLog[]): Promise<void> {
             csv(entry.attributes == null ? null : JSON.stringify(entry.attributes)),
         ].join(",") + "\n");
         // row to copy to the db
-        console.log(rows)
         /// Send all the log records in rows to PostgreSQL through the copy writable stream.
         // Readable.from(rows): Read stream.
         // Pipeline: connects streams to transfers data.
         const ReadStream = Readable.from(rows)
         await pipeline(ReadStream, writeStream);
         void aggregationBuilder(entries);
-        // calculate aggrigation each time i ingest a bulk 
     });
 }
 export async function aggregationBuilder(entries: NewLog[]) {

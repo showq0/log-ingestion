@@ -68,20 +68,21 @@ flowchart LR
 ## Optimization Progress
 | Optimization stage                        | Correctness | Performance | Queries | Reliability | Total      |
 | ----------------------------------------- | ----------- | ----------- | ------- | ----------- | ---------- |
-| PostgreSQL Configuration Optimization                      | 12.0/15     | 21.9/50     | 0.0/15  | 20/20       | 53.9% |
+| PostgreSQL Configuration Optimization     | 12.0/15     | 21.9/50     | 0.0/15  | 20/20       | 53.9% |
 | Added index strategy                      | 15.0/15     | 26.9/50     | 6.0/15  | 20/20       | 67.9%  |
 | Dual-path aggregation engine              | 15.0/15     | 28.3/50     | 6.0/15  | 20/20       | 69.3% |
 | In-memory buffering + batched COPY writes | 15.0/15     | 47.1/50     | 14.9/15 | 20/20       | 97.0% |
-| DB Pools Based on Workload | 15.0/15     | 47.2/50     | 14.9/15 | 20/20       | 97.1% |
+| Concurrent Flush  | 15.0/15     | 47.5/50     | 15/15 | 20/20       | 97.5% |
+
 
 ## Scenario Results 
 
 | Scenario   | Throughput    | Ingestion p95 | Aggregation p95 | Error rate      |
 | ---------- | ------------- | ------------- | --------------- | ----------- |
-| Load       | 14,998 logs/s | 125.23 ms      | 8.05 ms            | 0%   |
-| Stress     | 20,996 logs/s | 173.58 ms      | 22.15 ms           | 0%   |
-| Spike      | 15,349 logs/s | 164.85 ms      | 26 ms         | 0%   |
-| Breakpoint | 22,463 logs/s | 1,335 ms      | 526 ms      | 0% |
+| Load       | 14,999 logs/s | 79.97 ms      | 2 ms          | 0%   |
+| Stress     | 20,972 logs/s | 213.52 ms     | 57.25 ms           | 0%   |
+| Spike      | 15,374 logs/s | 91.33 ms      | 26 ms         | 0%   |
+| Breakpoint | 21,899 logs/s | 2,654.17 ms   | 1,313 ms      | 0% |
 
 ---
 # Setup Instructions
