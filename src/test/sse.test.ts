@@ -1,8 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { sseLogsHandler, broadcastLogs, getConnectedSSEClientCount } from "../sse.js";
+import { sseLogsHandler, broadcastLogs, flushSSEBuffer, getConnectedSSEClientCount } from "../sse.js";
 import { EventEmitter } from "node:events";
-
-
 
 describe("SSE Handler and Broadcaster", () => {
     it("registers SSE client, sets correct headers, and unregisters on close", () => {
@@ -35,7 +33,7 @@ describe("SSE Handler and Broadcaster", () => {
         expect(getConnectedSSEClientCount()).toBe(countBefore);
     });
 
-    it("broadcasts logs to connected SSE clients", () => {
+    it("batches logs and sends them to connected SSE clients", async () => {
         const req = new EventEmitter() as any;
         const writtenData: string[] = [];
 
@@ -50,27 +48,41 @@ describe("SSE Handler and Broadcaster", () => {
 
         sseLogsHandler(req, res);
 
-        const sampleLogs = [
+        const sampleLogs1 = [
             {
                 service: "test-service",
                 level: "info",
-                message: "Test log message",
+                message: "Test log message 1",
                 timestamp: new Date("2026-10-29T12:00:00Z"),
                 attributes: { user: "alice" },
             },
         ];
 
-        broadcastLogs(sampleLogs);
+        const sampleLogs2 = [
+            {
+                service: "auth-service",
+                level: "warn",
+                message: "Test log message 2",
+                timestamp: new Date("2026-10-29T12:00:01Z"),
+                attributes: { user: "bob" },
+            },
+        ];
+
+        // Call broadcastLogs twice in rapid succession
+        broadcastLogs(sampleLogs1);
+        broadcastLogs(sampleLogs2);
+
+        // Wait for the 3ms buffer to flush automatically
+        await new Promise((resolve) => setTimeout(resolve, 15));
 
         const sseMessages = writtenData.filter((d) => d.startsWith("data: "));
+        // Both log batches should have been combined into a single SSE frame
         expect(sseMessages.length).toBe(1);
 
         const payload = JSON.parse(sseMessages[0].replace(/^data: /, "").trim());
-        expect(payload).toHaveLength(1);
-        expect(payload[0].service).toBe("test-service");
-        expect(payload[0].level).toBe("info");
-        expect(payload[0].message).toBe("Test log message");
-        expect(payload[0].attributes).toEqual({ user: "alice" });
+        expect(payload).toHaveLength(2);
+        expect(payload[0].message).toBe("Test log message 1");
+        expect(payload[1].message).toBe("Test log message 2");
 
         req.emit("close");
     });

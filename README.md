@@ -16,11 +16,15 @@ The service uses **in-memory buffering and batched `COPY` writes** to improve in
 
 --------
 ```mermaid
-%%{init: {"themeVariables": {"fontSize": "40px"}}}%%
+%%{init: {"themeVariables": {"fontSize": "35px","edgeLabelBackground": "#e1c8e702"
+}}}%%
 
 flowchart LR
-    A["Log ingest"] --> B["Express.js API<br/>TypeScript"]
+
+    A["Log ingest"] --> B["Backend API"]
     B --> C["Validate<br/>Logs"]
+
+
     C --> D["In-Memory<br/>Batch"]
     D --> E["Bulk<br/>Streaming"]
     E --> F[("Logs")]
@@ -30,21 +34,28 @@ flowchart LR
     J["aggrigate"] --> K["calculate aggrigation"]
     K -->|Standard<br/>aggrigation| I
     K -->|edge<br/>cases| F
-
+    O --> |SSE Conn|B
+    B --> L[batchLogs]
+    L --> |stream Logs| O["Dashboard"]
     subgraph DB["PostgreSQL Database"]
         F
         I
     end
+
+    
+
     classDef app fill:#DCEAFE,stroke:#2563EB,color:#172554
     classDef processing fill:#FEF3C7,stroke:#D97706,color:#78350F
     classDef storage fill:#D1FAE5,stroke:#059669,color:#064E3B
-    classDef subgraphdb fill:#E8EEF7,stroke:#64748B,color:#1E293B
+    classDef subgraphdb fill:#E8EEF7,stroke:#64748B,color:#1E293B 
 
     class A,B,J app
     class C,D,E,F,H,L,K processing
     class F,I storage
     class DB subgraphdb
 ```
+
+ 
 ------
 # Schema Design
 
