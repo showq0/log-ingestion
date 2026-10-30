@@ -28,9 +28,15 @@ const builderClient = postgres(config.db.url, {
     connect_timeout: 10,
     connection: { statement_timeout: 20000 },
 });
+
 const aggregationClient = postgres(config.db.url, { max: 3 });
 const queryClient = postgres(config.db.url, { max: 3 });
+
+const maintenanceClient = postgres(config.db.url, {
+    max: 1,
+});
 
 export const builderDb = drizzle(builderClient, { schema });
 export const aggregationDb = drizzle(aggregationClient, { schema });
 export const queryDb = drizzle(queryClient, { schema });
+export const maintenanceDb = drizzle(maintenanceClient, { schema });

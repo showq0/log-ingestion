@@ -8,6 +8,7 @@ import { createLogsHandler } from "./api/ingestLogs.js"
 import { queryLogsHandler } from "./api/queryLogs.js"
 import { aggregateLogsHandler } from "./api/aggregateLogs.js"
 import { sseLogsHandler as streamLogs } from "./sse.js"
+import { scheduleRetention } from "./retention.js"
 import errorsHandling from "./middlewares/errors-handling.js"
 import cors from "cors";
 
@@ -57,12 +58,17 @@ async function startServer() {
 
         console.log("Database migrations completed");
 
+
         // start 
         // app.listen(PORT, () => {
         //     console.log(`Server is running on port ${PORT}`);
         // });
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
+            // Start retention scheduler
+            scheduleRetention();
+            console.log(`scheduleRetention`);
+
         });
     } catch (error) {
         console.error("Database initialization failed:", error);
